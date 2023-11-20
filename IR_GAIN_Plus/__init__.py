@@ -53,5 +53,7 @@ class EXE:
                 mse_error += mse_loss(result[m==0], y[m==0]).item()
                 mae_error += mae_loss(result[m==0], y[m==0]).item()
                 batch_num += 1
-            print(epoch, round(mse_error/ batch_num, 4), round(mae_error / batch_num, 4))
+            print('Epoch', epoch)
+            print('MSE:', round(mse_error / batch_num, 4))
+            print('MAE:', round(mae_error / batch_num, 4))
             torch.save(self.generator, 'Files/IRGAINPlus_' + self.args.dataset + '_' + str(int(self.args.r_miss * 10)) + '.pth')
