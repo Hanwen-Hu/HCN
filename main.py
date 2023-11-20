@@ -10,7 +10,7 @@ d_in_dict = {'PM25':36, 'Traffic':214, 'Solar':137, 'Activity':3}
 parser = argparse.ArgumentParser()
 # Settings of Dataset
 parser.add_argument('-dataset', type=str, default='Traffic')
-parser.add_argument('-r_miss', type=float, default=0.4, help='Missing Rate')
+parser.add_argument('-r_miss', type=float, default=0.2, help='Missing Rate')
 # Settings of Training
 parser.add_argument('-cuda_id', type=int, default=0, help='Cuda ID')
 parser.add_argument('-epochs', type=int, default=20)
@@ -28,5 +28,6 @@ if torch.cuda.is_available():
 else:
     args.device = torch.device('cpu')
 
-network = IR_Net_Plus.EXE(args)
+network = IR_Net_Plus.EXE(args, load=True)
+# network = IR_GAIN_Plus.EXE(args)
 network.run()

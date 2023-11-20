@@ -35,7 +35,7 @@ class EXE:
         optimizer_g = torch.optim.SGD(self.generator.parameters(), lr=self.args.lr)
         optimizer_d = torch.optim.SGD(self.discriminator.parameters(), lr=self.args.lr)
         loader = DataLoader(self.dataset, batch_size=64, shuffle=True)
-        for epoch in range(self.args.epochs * 10):
+        for epoch in range(self.args.epochs):
             mse_error, mae_error, batch_num = 0, 0, 0
             for i, (x, y, m) in enumerate(loader):
                 # Training
