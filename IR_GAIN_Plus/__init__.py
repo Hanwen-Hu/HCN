@@ -36,6 +36,7 @@ class EXE:
         optimizer_d = torch.optim.Adam(self.discriminator.parameters(), lr=self.args.lr)
         loader = DataLoader(self.dataset, batch_size=64, shuffle=True)
         for epoch in range(self.args.epochs):
+            print('Epoch', epoch)
             mse_error, mae_error, batch_num = 0, 0, 0
             for i, (x, y, m) in enumerate(loader):
                 # Training
@@ -53,7 +54,6 @@ class EXE:
                 mse_error += mse_loss(result[m==0], y[m==0]).item()
                 mae_error += mae_loss(result[m==0], y[m==0]).item()
                 batch_num += 1
-            print('Epoch', epoch)
             print('MSE:', round(mse_error / batch_num, 4))
             print('MAE:', round(mae_error / batch_num, 4))
             torch.save(self.generator, 'Files/IRGAINPlus_' + self.args.dataset + '_' + str(int(self.args.r_miss * 10)) + '.pth')
