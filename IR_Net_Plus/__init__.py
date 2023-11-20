@@ -44,7 +44,7 @@ class EXE:
                 optimizer.step()
                 n_batch += 1
 
-                # Validation
+                # Testing
                 self.model.eval()
                 x[m == 1] = y[m == 1]
                 x_full = self.model(x, m)
