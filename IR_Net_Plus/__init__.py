@@ -22,7 +22,7 @@ class EXE:
         loss = 0
         iter_x, iter_m = x, m
         for _ in range(iter_time):
-            iter_x = self.model(iter_x, m)
+            iter_x = self.model(iter_x, iter_m)
             loss = loss + self.criterion(iter_x[m == 1], x[m == 1])
             iter_m = 1 - iter_m
         return loss
