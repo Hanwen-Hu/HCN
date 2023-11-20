@@ -10,7 +10,7 @@ class EXE:
         self.dict = {'PM25': AirQuality, 'Traffic': Traffic, 'Solar':Solar, 'Activity':Activity}
         self.generator = Generator(args.length, args.length, args.device, args.plus).to(args.device)
         self.discriminator = Discriminator(args.length, args.length).to(args.device)
-        self.dataset = self.dict[args.dataset](args.length, 1, args.device, args.miss_rate)
+        self.dataset = self.dict[args.dataset](args.length, 1, args.device, args.r_miss)
         self.criterion = torch.nn.MSELoss()
 
     def generator_loss(self, x, m):
@@ -32,8 +32,8 @@ class EXE:
     def run(self):
         mse_loss = torch.nn.MSELoss()
         mae_loss = lambda a, b: torch.mean(torch.abs(a - b))
-        optimizer_g = torch.optim.SGD(self.generator.parameters(), lr=self.args.lr)
-        optimizer_d = torch.optim.SGD(self.discriminator.parameters(), lr=self.args.lr)
+        optimizer_g = torch.optim.Adam(self.generator.parameters(), lr=self.args.lr)
+        optimizer_d = torch.optim.Adam(self.discriminator.parameters(), lr=self.args.lr)
         loader = DataLoader(self.dataset, batch_size=64, shuffle=True)
         for epoch in range(self.args.epochs):
             mse_error, mae_error, batch_num = 0, 0, 0

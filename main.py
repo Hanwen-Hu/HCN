@@ -13,7 +13,7 @@ parser.add_argument('-dataset', type=str, default='Traffic')
 parser.add_argument('-r_miss', type=float, default=0.2, help='Missing Rate')
 # Settings of Training
 parser.add_argument('-cuda_id', type=int, default=0, help='Cuda ID')
-parser.add_argument('-epochs', type=int, default=20)
+parser.add_argument('-epochs', type=int, default=100)
 parser.add_argument('-n_batch', type=int, default=64)
 parser.add_argument('-lr', type=float, default=3e-3, help='Learning Rate')
 # Settings of IR-XXX-Plus
@@ -28,6 +28,6 @@ if torch.cuda.is_available():
 else:
     args.device = torch.device('cpu')
 
-network = IR_Net_Plus.EXE(args, load=True)
-# network = IR_GAIN_Plus.EXE(args)
+# network = IR_Net_Plus.EXE(args, load=True)
+network = IR_GAIN_Plus.EXE(args)
 network.run()
