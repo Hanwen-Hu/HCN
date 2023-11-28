@@ -12,7 +12,7 @@ class EXE:
         self.dict = {'PM25': AirQuality, 'Traffic': Traffic, 'Solar': Solar, 'Activity': Activity}
         self.dataset = self.dict[args.dataset](args.length, 1, args.device, args.r_miss)
         if load:
-            self.model = torch.load('Files/IR-Square-Net_' + args.dataset + '_' + str(int(args.miss_rate * 10)) + '.pth')
+            self.model = torch.load('Files/IR-Square-Net_' + args.dataset + '_' + str(int(args.miss_rate * 10)) + '.pth').to(args.device)
         else:
             self.model = Net(args.dim, args.length, args.device, args.irm_usage).to(args.device)
         self.criterion = nn.MSELoss()

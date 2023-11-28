@@ -10,7 +10,7 @@ d_in_dict = {'PM25':36, 'Traffic':214, 'Solar':137, 'Activity':3}
 
 parser = argparse.ArgumentParser()
 # Model Selection
-parser.add_argument('-model', type=str, default='Net', help='Net or GAIN')
+parser.add_argument('-model', type=str, default='GAIN', help='Net or GAIN')
 # Settings of Dataset
 parser.add_argument('-dataset', type=str, default='Traffic')
 parser.add_argument('-r_miss', type=float, default=0.2, help='Missing Rate')
