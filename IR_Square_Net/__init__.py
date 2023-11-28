@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from Loader import Activity, AirQuality, Traffic, Solar
-from IR_Net_Plus.structure import Net_Plus
+from IR_Square_Net.structure import Net
 
 
 class EXE:
@@ -12,9 +12,9 @@ class EXE:
         self.dict = {'PM25': AirQuality, 'Traffic': Traffic, 'Solar': Solar, 'Activity': Activity}
         self.dataset = self.dict[args.dataset](args.length, 1, args.device, args.r_miss)
         if load:
-            self.model = torch.load('Files/' + args.dataset + '_' + str(int(args.miss_rate * 10)) + '.pth')
+            self.model = torch.load('Files/IR-Square-Net_' + args.dataset + '_' + str(int(args.miss_rate * 10)) + '.pth')
         else:
-            self.model = Net_Plus(args.dim, args.length, args.device, args.plus).to(args.device)
+            self.model = Net(args.dim, args.length, args.device, args.irm_usage).to(args.device)
         self.criterion = nn.MSELoss()
 
     def iterative_reconstruction(self, x, m, iter_time=2):
@@ -53,4 +53,4 @@ class EXE:
 
             print('MSE', round(mse / n_batch, 4))
             print('MAE', round(mae / n_batch, 4))
-            torch.save(self.model, 'Files/IRNetPlus_' + self.args.dataset + '_' + str(int(self.args.r_miss * 10)) + '.pth')
+            torch.save(self.model, 'Files/IR-Square-Net_' + self.args.dataset + '_' + str(int(self.args.r_miss * 10)) + '.pth')

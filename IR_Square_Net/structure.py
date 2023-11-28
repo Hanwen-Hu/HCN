@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 from torch.nn.functional import leaky_relu
 
-class InputLayer(nn.Module):
+# Incomplete Representation Mechanism
+class IRM(nn.Module):
     def __init__(self, in_dim, out_dim, device):
         super().__init__()
         self.weight = nn.Parameter(torch.ones(1, 1, in_dim, out_dim, device=device))
@@ -17,12 +18,12 @@ class InputLayer(nn.Module):
         return self.scale * torch.sum(weight * x.unsqueeze(-1), dim=2) + self.bias
 
 
-class Net_Plus(nn.Module):
-    def __init__(self, dim, length, device, plus=True):
+class Net(nn.Module):
+    def __init__(self, dim, length, device, use_irm=True):
         super().__init__()
-        self.plus = plus
-        if plus:
-            self.input_layer = InputLayer(length, length, device)
+        self.use_irm = use_irm
+        if use_irm:
+            self.input_layer = IRM(length, length, device)
         else:
             self.input_layer = nn.Linear(length, length)
         self.spatial_layers = nn.Sequential(nn.Linear(dim, dim), nn.LeakyReLU())
@@ -31,7 +32,7 @@ class Net_Plus(nn.Module):
 
     def forward(self, x, m):
         # batch * length * dim
-        if self.plus:
+        if self.use_irm:
             x = self.input_layer(x.transpose(1, 2), m.transpose(1, 2))
         else:
             x = self.input_layer(x.transpose(1, 2))

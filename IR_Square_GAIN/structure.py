@@ -2,15 +2,15 @@ import torch
 import torch.nn as nn
 from torch.nn.functional import relu
 
-from IR_Net_Plus.structure import InputLayer
+from IR_Square_Net.structure import IRM
 
 
 class Generator(nn.Module):
-    def __init__(self, l_seq, n_feature, device, plus=True):
+    def __init__(self, l_seq, n_feature, device, use_irm=True):
         super().__init__()
-        self.plus = plus
-        if plus:
-            self.input_layer = InputLayer(l_seq, l_seq, device)
+        self.use_irm = use_irm
+        if use_irm:
+            self.input_layer = IRM(l_seq, l_seq, device)
         else:
             self.input_layer = nn.Linear(l_seq, l_seq)
         self.layers = nn.Sequential(nn.Linear(l_seq, n_feature), nn.ReLU(),
@@ -18,7 +18,7 @@ class Generator(nn.Module):
 
     def forward(self, x, m):
         # batch * l_seq * dim
-        if self.plus:
+        if self.use_irm:
             inputs = relu(self.input_layer(x.transpose(1, 2), m.transpose(1, 2)))  # batch * dim * l
         else:
             inputs = relu(self.input_layer(x.transpose(1, 2)))

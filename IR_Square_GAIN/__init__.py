@@ -2,13 +2,13 @@ import torch
 from torch.utils.data import DataLoader
 
 from Loader import AirQuality, Traffic, Solar, Activity
-from IR_GAIN_Plus.structure import Generator, Discriminator
+from IR_Square_GAIN.structure import Generator, Discriminator
 
 class EXE:
     def __init__(self, args):
         self.args = args
         self.dict = {'PM25': AirQuality, 'Traffic': Traffic, 'Solar':Solar, 'Activity':Activity}
-        self.generator = Generator(args.length, args.length, args.device, args.plus).to(args.device)
+        self.generator = Generator(args.length, args.length, args.device, args.irm_usage).to(args.device)
         self.discriminator = Discriminator(args.length, args.length).to(args.device)
         self.dataset = self.dict[args.dataset](args.length, 1, args.device, args.r_miss)
         self.criterion = torch.nn.MSELoss()
@@ -56,4 +56,4 @@ class EXE:
                 batch_num += 1
             print('MSE:', round(mse_error / batch_num, 4))
             print('MAE:', round(mae_error / batch_num, 4))
-            torch.save(self.generator, 'Files/IRGAINPlus_' + self.args.dataset + '_' + str(int(self.args.r_miss * 10)) + '.pth')
+            torch.save(self.generator, 'Files/IR-Square-GAIN_' + self.args.dataset + '_' + str(int(self.args.r_miss * 10)) + '.pth')
