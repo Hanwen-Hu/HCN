@@ -4,7 +4,12 @@ import numpy as np
 np.random.seed(980525)
 
 
-def mask(x, target_rate=0.2):
+def mask(x: np.ndarray, target_rate: float = 0.2) -> np.ndarray:
+    """
+    :param x: original sequence
+    :param target_rate: masking rate
+    :return: the generated incomplete sequence
+    """
     shapes = x.shape
     x = x.reshape(-1)
     idx = np.random.permutation(x.shape[0])
@@ -12,7 +17,7 @@ def mask(x, target_rate=0.2):
     return x.reshape(shapes)
 
 
-def generate_dataset(dataset, miss_rate=0.2):
+def generate_dataset(dataset: str, miss_rate: float = 0.2) -> None:
     name_dict = {'pm25': 'PM25/pm25_ground.txt', 'activity': 'activity.csv', 'traffic': 'traffic.csv', 'solar': 'solar_AL.csv'}
     dim_dict = {'pm25': (1, None), 'activity': (4, 7), 'traffic': (3, None), 'solar': (None, None)}
     data = pd.read_csv('dataset/' + name_dict[dataset], delimiter=',').iloc[:, dim_dict[dataset][0]:dim_dict[dataset][1]].values

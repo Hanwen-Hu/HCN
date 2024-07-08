@@ -1,4 +1,5 @@
 import math
+from argparse import Namespace
 
 import torch
 import torch.nn as nn
@@ -6,14 +7,19 @@ import torch.nn as nn
 
 # Incomplete Representation Mechanism
 class IRM(nn.Module):
-    def __init__(self, in_dim, out_dim, device):
+    def __init__(self, in_dim: int, out_dim: int, device: torch.device) -> None:
         super().__init__()
         self.weight = nn.Parameter(torch.ones(1, 1, in_dim, out_dim, device=device))
         self.bias = nn.Parameter(torch.zeros(1, 1, out_dim, device=device))
         self.scale = nn.Parameter(torch.ones(1, 1, out_dim, device=device))
 
-    def forward(self, x, m):
-        batch, dim = x.shape[0], x.shape[1]
+    def forward(self, x: torch.Tensor, m: torch.Tensor) -> torch.Tensor:
+        """
+        :param x: (batch, dim, in_dim)
+        :param m: (batch, dim, in_dim)
+        :return: (batch, dim, out_dim)
+        """
+        batch, dim, _ = x.shape
         weight = self.weight.repeat(batch, dim, 1, 1)
         weight[m == 0] = 0
         weight = weight / (torch.sum(torch.abs(weight), dim=-2, keepdim=True) + 1e-5)
@@ -21,7 +27,7 @@ class IRM(nn.Module):
 
 
 class Layer(nn.Module):
-    def __init__(self, length, hidden_dim, dropout):
+    def __init__(self, length: int, hidden_dim: int, dropout: float) -> None:
         super().__init__()
         self.qkv_layer = nn.ModuleList([nn.Linear(length, hidden_dim) for _ in range(3)])
         self.fc = nn.Sequential(nn.Linear(hidden_dim, length), nn.Dropout(dropout))
@@ -32,7 +38,7 @@ class Layer(nn.Module):
                                  nn.Linear(hidden_dim, length), nn.Dropout(dropout))
         self.ffn_norm = nn.LayerNorm(length)
 
-    def attention(self, x):
+    def attention(self, x: torch.Tensor) -> torch.Tensor:
         """
         :param x: (batch, dim, length)
         :return: (batch, dim, length)
@@ -43,13 +49,17 @@ class Layer(nn.Module):
         value = torch.matmul(attn, value)
         return self.fc(value)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        :param x: (batch, dim, length)
+        :return: (batch, dim, length)
+        """
         x = self.attn_norm(self.attention(x) + x)
         return self.ffn_norm(self.ffn(x) + x)
 
 
 class Net(nn.Module):
-    def __init__(self, args):
+    def __init__(self, args: Namespace) -> None:
         super().__init__()
         self.use_irm = args.use_irm
         if args.use_irm:
@@ -60,8 +70,12 @@ class Net(nn.Module):
         self.layers = nn.ModuleList([Layer(args.length, args.length, args.dropout) for _ in range(args.n_layer)])
         self.output_layer = nn.Linear(args.length, args.length)
 
-    def forward(self, x, m):
-        # batch * length * dim
+    def forward(self, x: torch.Tensor, m: torch.Tensor) -> torch.Tensor:
+        """
+        :param x: (batch, length, dim)
+        :param m: (batch, length, dim)
+        :return: (batch, length, dim)
+        """
         if self.use_irm:
             x = self.input_layer(x.transpose(1, 2), m.transpose(1, 2))
         else:
@@ -73,13 +87,18 @@ class Net(nn.Module):
 
 
 class Discriminator(nn.Module):
-    def __init__(self, args):
+    def __init__(self, args: Namespace) -> None:
         super().__init__()
         self.layers = nn.Sequential(nn.Linear(2 * args.length, args.length), nn.ReLU(),
                                     nn.Linear(args.length, args.length), nn.ReLU(),
                                     nn.Linear(args.length, args.length), nn.Sigmoid())
 
-    def forward(self, x, m):
+    def forward(self, x: torch.Tensor, m: torch.Tensor) -> torch.Tensor:
+        """
+        :param x: (batch, length, dim)
+        :param m: (batch, length, dim)
+        :return: (batch, length, dim)
+        """
         x, m = x.transpose(1, 2), m.transpose(1, 2)
         h = torch.rand_like(m)
         mask = m.clone()

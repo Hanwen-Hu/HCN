@@ -5,7 +5,7 @@ from model import IR2InSample, IR2OutOfSample
 from data_loader import generate_dataset
 
 
-def parse_arguments():
+def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     # Model Selection
     parser.add_argument('-model', type=str, default='Net', help='Net or GAN')
@@ -20,7 +20,7 @@ def parse_arguments():
     parser.add_argument('-lr', type=float, default=3e-3, help='Learning Rate')
     parser.add_argument('-patience', type=int, default=20)
     parser.add_argument('-load', action='store_true')
-    # Settings of IR-Square-Net
+    # Settings of Model
     parser.add_argument('-use_irm', type=int, default=1, help='Usage of Incomplete Representation Mechanism')
     parser.add_argument('-iter_time', type=int, default=2, help='Reconstruction Times')
     parser.add_argument('-dropout', type=float, default=0.05, help='Dropout Rate')
@@ -38,7 +38,7 @@ def parse_arguments():
     return args
 
 
-def main():
+def main() -> None:
     args = parse_arguments()
     print('Dataset: {}'.format(args.dataset.upper()))
     print('------Dataset Generation-------')

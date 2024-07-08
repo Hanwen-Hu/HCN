@@ -1,3 +1,5 @@
+from argparse import Namespace
+
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -8,7 +10,7 @@ from .units import Net, Discriminator
 
 
 class IR2:
-    def __init__(self, args):
+    def __init__(self, args: Namespace) -> None:
         self.args = args
         self.path = 'IR2' + self.args.model + '_' + self.args.dataset + '_' + str(int(self.args.r_miss * 10)) + '.pth'
         self.model = Net(args).to(args.device)
@@ -25,14 +27,14 @@ class IR2:
         self.mse_loss = torch.nn.MSELoss()
         self.mae_loss = lambda a, b: torch.mean(torch.abs(a - b))
 
-    def _get_data(self, mode=None):
+    def _get_data(self, mode: str = None) -> DataLoader:
         if mode is None:
             dataset = InSampleDataset(self.args.dataset, self.args.length, self.args.device, self.args.r_miss, self.args.step)
         else:
             dataset = OutOfSampleDataset(self.args.dataset, self.args.length, self.args.device, self.args.r_miss, self.args.step, mode)
         return DataLoader(dataset, batch_size=self.args.n_batch, shuffle=True)
 
-    def _iterative_reconstruction(self, x, m, iter_time):
+    def _iterative_reconstruction(self, x: torch.Tensor, m: torch.Tensor, iter_time: int) -> torch.Tensor:
         loss = 0
         iter_x, iter_m = x, m
         for _ in range(iter_time):
@@ -41,13 +43,13 @@ class IR2:
             iter_m = 1 - iter_m
         return loss
 
-    def _discriminator_loss(self, x, m):
+    def _discriminator_loss(self, x: torch.Tensor, m: torch.Tensor) -> torch.Tensor:
         x_impute = self.model(x, m)
         x_impute[m == 1] = x[m == 1]
         p = self.discriminator(x_impute, m)
         return self.bce_loss(p, m)
 
-    def _train_batch(self, x, m):
+    def _train_batch(self, x: torch.Tensor, m: torch.Tensor) -> None:
         self.model.train()
         self.optimizer.zero_grad()
         loss = self._iterative_reconstruction(x, m, self.args.iter_time)
@@ -62,12 +64,18 @@ class IR2:
             loss.backward()
             self.optim_d.step()
 
-    def _valid_batch(self, x, m, v):
+    def _valid_batch(self, x: torch.Tensor, m: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
+        """
+        :param x: incomplete input
+        :param m: mask matrix
+        :param v: validation matrix
+        :return: validation loss
+        """
         self.model.eval()
         x_hat = self.model(x, m)
         return self.mse_loss(x_hat[v == 0], x[v == 0]).item()
 
-    def _patience(self, epoch, valid_loss, best_valid, patience):
+    def _patience(self, epoch: int, valid_loss: float, best_valid: float, patience: int) -> (float, int):
         if valid_loss < best_valid:
             best_valid = valid_loss
             torch.save(self.model.state_dict(), self.path)
@@ -77,12 +85,19 @@ class IR2:
         print('Epoch', epoch, '\tMSE', round(valid_loss, 4), '\tBest', round(best_valid, 4), '\tPatience', patience)
         return best_valid, patience
 
-    def _test_batch(self, x, y, m, t):
+    def _test_batch(self, x: torch.Tensor, y: torch.Tensor, m: torch.Tensor, t: torch.Tensor) -> (torch.Tensor, torch.Tensor):
+        """
+        :param x: incomplete input
+        :param y: complete label
+        :param m: mask matrix of x
+        :param t: testing matrix
+        :return: testing error (mse and mae)
+        """
         self.model.eval()
         x_hat = self.model(x, m)
         return self.mse_loss(x_hat[t == 0], y[t == 0]).item(), self.mae_loss(x_hat[t == 0], y[t == 0]).item()
 
-    def _save_result(self, mse, mae, mode):
+    def _save_result(self, mse: float, mae: float, mode: str)-> None:
         print('MSE', round(mse, 4))
         print('MAE', round(mae, 4))
         result = mode + '_' + self.args.model + ',' + self.args.dataset + ',' + str(self.args.r_miss) + ',' + str(self.args.use_irm) + ',' + str(self.args.iter_time) + ',' + str(round(mse, 4)) + ',' + str(round(mae, 4)) + '\n'
@@ -91,11 +106,11 @@ class IR2:
 
 
 class IR2InSample(IR2):
-    def __init__(self, args):
+    def __init__(self, args: Namespace) -> None:
         super().__init__(args)
         self.path = 'networks/In_' + self.path
 
-    def train(self):
+    def train(self) -> None:
         loader = self._get_data()
         patience, best_valid = 0, float('inf')
         for epoch in range(self.args.epochs):
@@ -111,7 +126,7 @@ class IR2InSample(IR2):
             if patience == self.args.patience:
                 break
 
-    def test(self):
+    def test(self) -> None:
         state_dict = torch.load(self.path, map_location=self.args.device)
         self.model.load_state_dict(state_dict)
         self.model.eval()
@@ -127,11 +142,11 @@ class IR2InSample(IR2):
 
 
 class IR2OutOfSample(IR2):
-    def __init__(self, args):
+    def __init__(self, args: Namespace) -> None:
         super().__init__(args)
         self.path = 'networks/Out_' + self.path
 
-    def train(self):
+    def train(self) -> None:
         train_loader = self._get_data('train')
         valid_loader = self._get_data('valid')
         patience, best_valid = 0, float('inf')
@@ -150,7 +165,7 @@ class IR2OutOfSample(IR2):
             if patience == self.args.patience:
                 break
 
-    def test(self):
+    def test(self) -> None:
         state_dict = torch.load(self.path, map_location=self.args.device)
         self.model.load_state_dict(state_dict)
         loader = self._get_data('test')
