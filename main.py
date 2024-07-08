@@ -1,7 +1,7 @@
 import argparse
 import torch
 
-from models import IR2InSample, IR2OutOfSample
+from model import IR2InSample, IR2OutOfSample
 from data_loader import generate_dataset
 
 

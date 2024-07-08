@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 from data_loader import InSampleDataset, OutOfSampleDataset
 
-from .networks import Net, Discriminator
+from .units import Net, Discriminator
 
 
 class IR2:
